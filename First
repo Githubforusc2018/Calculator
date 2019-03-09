@@ -1,0 +1,170 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/*
+    实现一个有界面的四则计算器.
+    如3*(4+2)/2-5    转换成:3 4 2 + * 2 / 5 -
+    本计算器不支持浮点运算，支持括号运算准确
+    有一些BUG需要改进算法
+*/
+namespace ConsoleApp1
+{
+    class Arithmetic_unit
+    {
+        Stack<string> S = new Stack<string>();
+        Queue<string> Q = new Queue<string>();
+        string str,Num="";
+        char[] F = { '(', ')', '*', '/', '+', '-' };
+        public Arithmetic_unit()
+        {
+            ReadLine();
+            convertMidtoLast();
+            getValue();
+        }
+        public void ReadLine()
+        {
+            //str = Console.ReadLine();
+            //str = "(6/2)*15+3*2";
+            str = "6*4/2";
+        }
+        public void convertMidtoLast()
+        {
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (i == str.Length - 1)    //改版后的12*3,如出错，注释掉if语句
+                {
+                    //末尾一个
+                    Num += str[i].ToString();
+                    Q.Enqueue(Num);
+                    break;
+                }
+                if (str[i] == ')')
+                {
+                    if (Num != "")
+                    {
+                        Q.Enqueue(Num); //改版语句
+                        Num = "";   //改版语句
+                    }
+                    while (true)
+                    {
+                        string tmp = S.Peek();
+                        S.Pop();
+                        if (tmp != "(")
+                        {
+                            Q.Enqueue(tmp);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                } else if (str[i] == '+' || str[i] == '-')
+                {
+                    if (Num != "")
+                    {
+                        Q.Enqueue(Num); //改版语句
+                        Num = "";   //改版语句
+                    }
+                    if (S.Count() == 0 )
+                    {
+                        S.Push(str[i].ToString());
+                        
+                    }
+                    else if (S.Peek()=="*" || S.Peek() == "/")
+                    {
+                        while(S.Peek()=="*" || S.Peek() == "/")
+                        {
+                            Q.Enqueue(S.Peek());
+                            S.Pop();
+                            if (S.Count() == 0)
+                            {
+                                break;  //栈为空.
+                            }
+                        }
+                        S.Push(str[i].ToString());
+                    }
+                    else
+                    {
+                        //S.Push(str[i].ToString());//以下是测试代码，不通过请注释以下，并且恢复该行.
+                        if ((str[i] == '+' || str[i]=='-')&& S.Peek() == "-")
+                        {
+                            Q.Enqueue(S.Peek());
+                            S.Pop();
+                            S.Push(str[i].ToString());
+                        }
+                        else
+                        {
+                            S.Push(str[i].ToString());
+                        }
+                    }
+                }else if (str[i]=='(' || str[i]=='*'|| str[i] == '/')
+                {
+                    if (Num != "")//一开始有个括号
+                    {
+                        Q.Enqueue(Num); //改版语句
+                        Num = "";   //改版语句
+                    }
+                    S.Push(str[i].ToString());
+                }
+                else
+                {
+                    //Q.Enqueue(str[i].ToString()); //改版之前的语句12*3
+                    Num += str[i].ToString();//支持12*3改版
+                }
+            }
+            while (S.Count()>0)
+            {
+                Q.Enqueue(S.Peek());    //剩下的入队列Q
+                S.Pop();
+            }
+            foreach(string s in Q)
+            {
+                Console.Write("{0},", s);
+            }
+            Console.WriteLine("\n");
+        }
+        public void getValue()
+        {
+            while(Q.Count()>0)
+            {
+                if (Q.Peek() != "+" && Q.Peek() != "-" && Q.Peek() != "*" && Q.Peek() != "/")
+                {
+                    S.Push(Q.Peek());   //栈顶-栈底  2 4 3
+                }
+                else
+                {
+                    string b = S.Pop();//2
+                    string a = S.Pop();//4
+                    int c=0;
+                    if (Q.Peek() == "*")
+                    {
+                        c = int.Parse(b) * int.Parse(a);
+                    }
+                    else if (Q.Peek() == "+")
+                    {
+                        c = int.Parse(b) + int.Parse(a);
+                    }
+                    else if (Q.Peek() == "-")
+                    {
+                        c = int.Parse(a) - int.Parse(b);
+                    }
+                    else
+                    {
+                        c = int.Parse(a) / int.Parse(b);
+                    }
+                    S.Push(c.ToString());
+                }
+                Q.Dequeue();
+            }
+            Console.WriteLine("equal = {0}", S.Pop());
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Arithmetic_unit m = new Arithmetic_unit();
+        }
+    }
+}
